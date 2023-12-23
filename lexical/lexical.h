@@ -76,6 +76,7 @@ public:
     bool operatorAnalysis(string& str, int& i); //算符检测
     bool Analyze(string str);                  //词法分析
     void Output();                             //输出函数
+    vector<Word> getlexicalresult() { return LexicalAnalysisOutput; }
 private:
     vector<Word> LexicalAnalysisOutput;//单词类型，属性值
 };
