@@ -1,5 +1,14 @@
-﻿#include "syntax.h"
-#include "syntaxtree.h"
+﻿#pragma once
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <climits>
+#include <algorithm>
+#include <fstream>
+#include "syntax.h"
 using namespace std;
 
 
@@ -74,5 +83,7 @@ bool SyntaxAnalyzer::syntaxanalyze(SyntaxTreeNode* rootNode, NodeType nodetype) 
 
     default:
         cout << "语法错误" << endl;
+        return false;
     }
+    return false;
 }

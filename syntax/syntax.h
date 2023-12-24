@@ -1,29 +1,23 @@
 ﻿#pragma once
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <climits>
+#include <algorithm>
+#include <fstream>
 #include "lexical.h"
 #include "syntaxtree.h"
 using namespace std;
 
 // 节点类型枚举
 // 随意列举的，有不对的可以对应修改下
-enum NodeType {
-    PROGRAM,
-    PROGRAM_HEADER,
-    SUB_PROGRAM,
-    CONST_DECLARATION,
-    CONST_DEFINITION,
-    VAR_DECLARATION,
-    IDENTIFIER,
-    COMPOUND_STATEMENT,
-    STATEMENT,
-    ASSIGNMENT_STATEMENT,
-    EXPRESSION,
-    TERM,
-    FACTOR,
-    RELATION_EXPRESSION,
-    RELATION_OPERATOR,
-    LETTER,
-    NUMBER
-};
+
 
 class SyntaxAnalyzer {
 public:
@@ -40,9 +34,7 @@ private:
     const vector<Word>& _lexicalOutput;  // 词法分析结果
     size_t _currentWordIndex;           // 当前处理的单词索引
     SyntaxTreeNode* _root;                   // 语法分析树根节点
-
 };
-
 
 // 语法规则：每个语法分析树节点对应其中一个序号
 //1  <程序>→<程序⾸部> <分程序>

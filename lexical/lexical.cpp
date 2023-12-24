@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -7,7 +8,7 @@
 #include <climits>
 #include <algorithm>
 #include <fstream>
-#include"lexical.h"
+#include "lexical.h"
 using namespace std;
 
 
@@ -136,56 +137,4 @@ void LexicalAnalyzer::Output() {
     for (auto i : LexicalAnalysisOutput) {
         cout << i._type << "  :  " << i._value << endl << endl;
     }
-}
-
-
-
-//-----------------文件读取函数实现-----------------//
-/*
-* 注解：
-* 这里是对整个进行读取测试，实际需要结合语法分析和中间代码生成实现：
-  边读边进行词法和语法分析，然后翻译成中间代码
-*/
-string readFile(string filename) {
-    std::ifstream file(filename); // 打开名 txt 的文件
-    string LexicalAnalysisInput;
-    if (file.is_open()) { // 检查文件是否成功打开
-        std::string line;
-        while (std::getline(file, line)) { // 逐行读取文件内容,换行符会被读取然后丢弃
-            if (line.length() != 0) {
-                cout << line << endl;
-                LexicalAnalysisInput += line;
-                LexicalAnalysisInput += " ";
-            }
-        }
-        file.close(); // 关闭文件流
-        return LexicalAnalysisInput;
-    }
-    else {
-        std::cerr << "Unable to open file" << std::endl;
-        return "";
-    }
-}
-
-void Test01()
-{
-    LexicalAnalyzer LexicalMachine;
-    string filename;
-    cout << "请输入文件名称：" << endl;
-    cin >> filename;
-    string LexicalAnalysisInput = readFile(filename);
-    if (LexicalMachine.Analyze(LexicalAnalysisInput)) {
-        LexicalMachine.Output();
-        //进行语法分析
-    }
-    else {//出现词法错误
-        cout << "Lexical Error" << endl;
-    }
-}
-
-
-int main() {
-   
-    Test01();
-    return 0;
 }

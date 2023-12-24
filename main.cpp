@@ -1,6 +1,16 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <climits>
+#include <algorithm>
+#include <fstream>
 #include "lexical.h"
 #include "syntax.h"
 //#include "IntermediateCodeGenerator.h"
@@ -43,7 +53,9 @@ int main() {
     string LexicalAnalysisInput = readFile(inputFilePath);
     // 创建词法分析器
     LexicalAnalyzer lexicalanalyzer;
+    cout << "开始词法分析" << endl;
     if (lexicalanalyzer.Analyze(LexicalAnalysisInput)) {
+        cout << "词法分析结果：" << endl;
         lexicalanalyzer.Output();
     }
     else {//出现词法错误
@@ -51,9 +63,10 @@ int main() {
         return 1;
     }
 
-    // 执行语法分析
+    //// 执行语法分析
     vector<Word> LexicalResult = lexicalanalyzer.getlexicalresult();
-    // 创建语法分析器
+    cout << "开始语法分析：" << endl;
+    //// 创建语法分析器
     SyntaxAnalyzer syntaxanalyzer(LexicalResult);
 
 

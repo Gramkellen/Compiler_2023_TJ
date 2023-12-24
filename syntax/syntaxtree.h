@@ -1,9 +1,38 @@
-#ifndef SYNTAX_TREE_H
-#define SYNTAX_TREE_H
-
+#pragma once
 #include <string>
 #include <vector>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <climits>
+#include <algorithm>
+#include <fstream>
+#include "syntax.h"
+#include "lexical.h"
+using namespace std;
 
+enum NodeType {
+    PROGRAM,
+    PROGRAM_HEADER,
+    SUB_PROGRAM,
+    CONST_DECLARATION,
+    CONST_DEFINITION,
+    VAR_DECLARATION,
+    IDENTIFIER,
+    COMPOUND_STATEMENT,
+    STATEMENT,
+    ASSIGNMENT_STATEMENT,
+    EXPRESSION,
+    TERM,
+    FACTOR,
+    RELATION_EXPRESSION,
+    RELATION_OPERATOR,
+    LETTER,
+    NUMBER
+};
 
 // 语法分析树节点类
 class SyntaxTreeNode {
@@ -25,8 +54,6 @@ public:
 
 private:
     NodeType type_;                      // 节点类型
-    string value_;                  // 节点值（对于终结符节点）
-    vector<SyntaxTreeNode*> children_;  // 子节点列表
+    string value_;                       // 节点值（对于终结符节点）
+    vector<SyntaxTreeNode*> children_;   // 子节点列表
 };
-
-#endif  // SYNTAX_TREE_H

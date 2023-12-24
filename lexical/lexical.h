@@ -7,7 +7,6 @@
 #include<vector>
 using namespace std;
 
-
 //¹Ø¼ü×Ö±êÊ¶
 enum KeyWordTags
 {
