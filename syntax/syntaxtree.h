@@ -16,8 +16,21 @@ using namespace std;
 
 // 每一条语法规则对应一个NodeType
 enum NodeType {
+<<<<<<< Updated upstream:syntax/syntaxtree.h
     // 避免和关键字重复，这里枚举从9开始
     PROGRAM = 9,
+=======
+    PROGRAMENTRY,
+    PROGRAM,
+    END,
+    CONST,
+    VAR,
+    WHILE,
+    DO,
+    IF,
+    THEN,
+    BEGIN,
+>>>>>>> Stashed changes:Compiler/syntaxtree.h
     PROGRAM_HEADER,
     SUB_PROGRAM,
     CONST_DECLARATION,
@@ -39,7 +52,37 @@ enum NodeType {
     RELATION_OPERATOR,
     LETTER,
     NUMBER,
-    EMPTY_STATEMENT 
+    EMPTY_STATEMENT,
+    COMMA,
+    ASSIGNMENT,
+    // 非终结符
+    program,
+    program_header,
+    sub_program,
+    const_declaration,
+    const_definition,
+    unsigned_integer,
+    var_declaration,
+    identifier,
+    compound_statement,
+    statement,
+    assignment_statement,
+    expression,
+    expression2,
+    opening_parentheses,
+    closing_parentheses,
+    term,
+    term2,
+    factor,
+    additive_operator,
+    multiplicative_operator,
+    conditional_statement,
+    loop_statement,
+    condition,
+    relation_operator,
+    letter,
+    number,
+    empty_statement,
 };
 
 // 语法分析树节点类

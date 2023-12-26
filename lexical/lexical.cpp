@@ -110,10 +110,16 @@ bool LexicalAnalyzer::Analyze(string str) {
     transform(str.begin(), str.end(), str.begin(), ::toupper);
     for (int i = 0; i < str.length(); i++) {
         if (str[i] == ' ' || str[i] == 9) {//空格或tab
-            continue;
+            continue; 
         }
+<<<<<<< Updated upstream:lexical/lexical.cpp
         //识别标识符
         else if (str[i] >= 'A' && str[i] <= 'Z') {
+=======
+        //识别关键字 or  标识符
+        else if ((str[i] >= 'A' && str[i] <= 'Z') || 
+            (str[i] >= 'a' && str[i] <= 'z')) {
+>>>>>>> Stashed changes:Compiler/lexical.cpp
             letterAnalysis(str, i);
         }
         //识别整数
@@ -124,6 +130,7 @@ bool LexicalAnalyzer::Analyze(string str) {
            }
         }
         else {
+            // 判断运算符
             if (!operatorAnalysis(str, i)) {
                 return false;
             }
