@@ -98,8 +98,6 @@ bool SyntaxAnalyzer::_CONSTDEFINITION(SyntaxTreeNode* TreeNode)
     else
     {
         ++_currentWordIndex;  //读取下一个字符
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(IDENTIFIER, ":;");
-        TreeNode->addChild(childNode2);
     }
     if (!_UNSIGNEDINTEGER(TreeNode))
     {
@@ -132,7 +130,7 @@ bool SyntaxAnalyzer::_UNSIGNEDINTEGER(SyntaxTreeNode* TreeNode)
     return true;
 }
 
-//<变量说明>→VAR<标识符>{，<标识符>}
+//<变量说明>→VAR<标识符>{，<标识符>};
 bool SyntaxAnalyzer::_VARDECLARATION(SyntaxTreeNode* TreeNode)
 {
     ++_currentWordIndex;
@@ -145,13 +143,18 @@ bool SyntaxAnalyzer::_VARDECLARATION(SyntaxTreeNode* TreeNode)
         return false;
     }
     while (_lexicalOutput[_currentWordIndex]._value == ",") {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(CONST, ",");  //这里可以修改，最后再修改趴
         ++_currentWordIndex;    //读取下一个字符
-        TreeNode->addChild(childNode2);
         if (!_IDENTIFIER(TreeNode))
         {
             return false;
         }
+    }
+    if (_lexicalOutput[_currentWordIndex]._value == ";")
+    {
+        ++_currentWordIndex;
+    }
+    else {
+        return false;
     }
     return true;
 }
@@ -187,6 +190,7 @@ bool SyntaxAnalyzer::_COMPOUNDSTATEMENT(SyntaxTreeNode* TreeNode)
         }
     }
     if (_lexicalOutput[_currentWordIndex]._value == "END") {
+        ++_currentWordIndex;
         return true;
     }
     return false;
@@ -197,7 +201,7 @@ bool SyntaxAnalyzer::_STATEMENT(SyntaxTreeNode* TreeNode)
 {
     
     if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER" ) {  //赋值语句
-        return _IDENTIFIER(TreeNode);
+        return _ASSIGNMENTSTATEMENT(TreeNode);  //进入
     } 
     else if (_lexicalOutput[_currentWordIndex]._value == "IF") {  //条件语句
         return _CONDITIONALSTATEMENT(TreeNode);
@@ -224,6 +228,8 @@ bool SyntaxAnalyzer::_ASSIGNMENTSTATEMENT(SyntaxTreeNode* TreeNode)
         return false;
     }
     if (_lexicalOutput[_currentWordIndex]._value == ":=") {
+        ++_currentWordIndex;
+    }else {
         return false;
     }
     if (!_EXPRESSION(TreeNode)) {

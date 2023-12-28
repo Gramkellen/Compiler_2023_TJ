@@ -8,7 +8,7 @@
 using namespace std;
 
 void Test01();
-string readFile(string filename = "D:\\Files\\SoftWare_5\\编译原理\\期末\\lexical\\Compiler_2023_TJ\\lexical\\program.txt");
+string readFile(string filename = "D:\\Files\\SoftWare_5\\编译原理\\期末\\Compiler_2023_TJ\\lexical\\program.txt");
 //使用hash底层来进行KEYWORDS查找
 const unordered_set<string> KEYWORDS = {
     "PROGRAM",

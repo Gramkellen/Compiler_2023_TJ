@@ -13,7 +13,7 @@ using namespace std;
 * 2.怎么建立抽象语法树
 */
 
-void Test01()
+void Test1()
 {
     bool result = true;
     LexicalAnalyzer LexicalMachine;
@@ -43,6 +43,6 @@ void Test01()
 
 int main()
 {
-   
+    Test1();
     return 0;
 }
