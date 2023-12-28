@@ -79,6 +79,13 @@ bool SyntaxAnalyzer::_CONSTDECLARATION(SyntaxTreeNode* TreeNode)
             return false;
         }
     }
+    if (_lexicalOutput[_currentWordIndex]._value == ";")
+    {
+        ++_currentWordIndex;
+    }
+    else {
+        return false;
+    }
     return true;
 }
 
