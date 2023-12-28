@@ -51,6 +51,7 @@ enum NodeType {
     NUMBER,
     EMPTY_STATEMENT,
     COMMA,
+    SEMICOLON,
     ASSIGNMENT,
     // 非终结符
     program,
@@ -79,7 +80,7 @@ enum NodeType {
     relation_operator,
     letter,
     number,
-    empty_statement,
+    empty_statement
 };
 
 // 语法分析树节点类
@@ -99,7 +100,7 @@ public:
     const string& getValue() const;
 
     // 获取子节点列表
-    const vector<SyntaxTreeNode*>& getChildren() const;
+    vector<SyntaxTreeNode*>& getChildren();
 
 private:
     NodeType type_;                      // 节点类型

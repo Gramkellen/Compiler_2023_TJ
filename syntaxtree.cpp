@@ -19,6 +19,6 @@ const string& SyntaxTreeNode::getValue() const {
 }
 
 // 获取子节点列表
-const vector<SyntaxTreeNode*>& SyntaxTreeNode::getChildren() const {
+vector<SyntaxTreeNode*>& SyntaxTreeNode::getChildren(){
     return children_;
 }

@@ -18,31 +18,37 @@ bool SyntaxAnalyzer::syntaxanalyze(SyntaxTreeNode* rootNode, NodeType nodetype) 
         rootNode = new SyntaxTreeNode(PROGRAMENTRY, "S");  //文法的开始节点
         this->_root = rootNode;
     }
-    return _PROGRAM(this->_root) && _SUBPROG(this->_root);
+    // 新建program_header和sub_program节点，分别插入根节点
+    SyntaxTreeNode* child1 = new SyntaxTreeNode(program_header, "");
+    SyntaxTreeNode* child2 = new SyntaxTreeNode(sub_program, "");
+    rootNode->addChild(child1);
+    rootNode->addChild(child2);
+    // 分别判断两个分支
+    return _PROGRAM(rootNode->getChildren()[0]) && _SUBPROG(rootNode->getChildren()[1]);
 }
 
 //<程序⾸部>→PROGRAM <标识符>
 bool SyntaxAnalyzer::_PROGRAM(SyntaxTreeNode* TreeNode)
 {
     //因为产生式右部有两个符号，进行递归下降
-    //读取下一个符号
     if (_lexicalOutput[_currentWordIndex]._value == "PROGRAM") {
         ++_currentWordIndex; 
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(PROGRAM, "PROGRAM"); //分析树添加节点
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        //_stable.addEntry("PROGRAM", "0");   //符号表添加符号,这里需要修改
+        // 添加终结符PROGRAM节点
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(PROGRAM, "PROGRAM"); 
         TreeNode->addChild(childNode);
     }
     else{
         return false;
     }
-    if (_IDENTIFIER(TreeNode))
+
+    // 新建子节点进行判断
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
+    TreeNode->addChild(childNode);
+    // 判断标识符
+    if (!_IDENTIFIER(childNode))
     {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, ""); //分析树添加节点
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+        // 如果不是，将子节点弹出
+        TreeNode->getChildren().pop_back(); 
         return false;
     }
     return true;
@@ -53,40 +59,37 @@ bool SyntaxAnalyzer::_SUBPROG(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._value == "CONST")
     {
-        if (_CONSTDECLARATION(TreeNode)) {
-            ++_currentWordIndex;  //读取下一个字符
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(const_declaration, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+        // 新建子节点进递归判断
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(const_declaration, "");
+        TreeNode->addChild(childNode);
+        // 传入子节点进行判断
+        if (!_CONSTDECLARATION(childNode)) {
+            // 如果不是，将子节点弹出
+            TreeNode->getChildren().pop_back();
             return false;
         }
     }
     else if (_lexicalOutput[_currentWordIndex]._value == "VAR")
     {
-        if (_VARDECLARATION(TreeNode)) {
-            ++_currentWordIndex;  //读取下一个字符
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(var_declaration, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(var_declaration, "");
+        TreeNode->addChild(childNode2);
+        if (!_VARDECLARATION(childNode2)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
     }
-    if (_STATEMENT(TreeNode))
-    {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(statement, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
+
+    // 将语句非标识符添加到父节点
+    SyntaxTreeNode* childNode3 = new SyntaxTreeNode(statement, "");
+    TreeNode->addChild(childNode3);
+    if (_STATEMENT(childNode3)){
+        return true;
     }
     else {
-        cout << _lexicalOutput[_currentWordIndex]._value << " " << _lexicalOutput[_currentWordIndex]._value << endl;
-        cout << "statement error" << endl;
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    return true;
+    
 }
 
 // <常量说明>→CONST <常量定义>{，<常量定义>}; 
@@ -94,30 +97,35 @@ bool SyntaxAnalyzer::_CONSTDECLARATION(SyntaxTreeNode* TreeNode)
 {
     //因为之前在分程序已经判断了常量说明，所以这里可以认定第一个token是CONST
     SyntaxTreeNode* childNode = new SyntaxTreeNode(CONST, "CONST");
-    cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
     TreeNode->addChild(childNode);
-    //_stable.addEntry("PROGRAM", "0");   //符号表添加符号,这里需要修改
-    if (_CONSTDEFINITION(TreeNode)) {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(const_definition, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
+
+    SyntaxTreeNode* childNode1 = new SyntaxTreeNode(const_definition, "");
+    TreeNode->addChild(childNode1);
+    if (!_CONSTDEFINITION(childNode1)) {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
+        return false;
+    }
+
+    while (_lexicalOutput[_currentWordIndex]._value == ",") {
+        ++_currentWordIndex;    //读取下一个字符
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(COMMA, ",");
+        TreeNode->addChild(childNode2);
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(const_definition, "");
+        TreeNode->addChild(childNode3);
+        if (!_CONSTDEFINITION(childNode2)){
+            // 若不符合语法规则，则将节点弹出
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+    }
+    if (_lexicalOutput[_currentWordIndex]._value == ";") {
+        ++_currentWordIndex;
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(SEMICOLON, ";");
         TreeNode->addChild(childNode);
     }
     else {
         return false;
-    }
-    while (_lexicalOutput[_currentWordIndex]._value == ",") {
-        ++_currentWordIndex;    //读取下一个字符
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(COMMA, ",");  //这里可以修改，最后再修改趴
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode2);
-        if (_CONSTDEFINITION(TreeNode))
-        {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(const_definition, "");
-            TreeNode->addChild(childNode);
-        }
-        else {
-            return false;
-        }
     }
     return true;
 }
@@ -125,33 +133,31 @@ bool SyntaxAnalyzer::_CONSTDECLARATION(SyntaxTreeNode* TreeNode)
 //<常量定义>→<标识符>: = <⽆符号整数>
 bool SyntaxAnalyzer::_CONSTDEFINITION(SyntaxTreeNode* TreeNode)
 {
-    if (_IDENTIFIER(TreeNode)) 
-    {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
+    TreeNode->addChild(childNode);
+    if (!_IDENTIFIER(childNode)) {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
         return false;
     }
     if (_lexicalOutput[_currentWordIndex]._value == ":=")
     {
-        ++_currentWordIndex;  //读取下一个字符
+        ++_currentWordIndex; 
         SyntaxTreeNode* childNode = new SyntaxTreeNode(ASSIGNMENT, ":=");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else
     {
         return false;
     }
-    if (_UNSIGNEDINTEGER(TreeNode))
+
+    // 新建unsigned_integer非标识符，插入父节点之后进行判断
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(unsigned_integer, "");
+    TreeNode->addChild(childNode2);
+    if (!_UNSIGNEDINTEGER(childNode2))
     {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(unsigned_integer, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -162,12 +168,11 @@ bool SyntaxAnalyzer::_CONSTDEFINITION(SyntaxTreeNode* TreeNode)
 //这里有个坑是第一位为0的情况
 bool SyntaxAnalyzer::_UNSIGNEDINTEGER(SyntaxTreeNode* TreeNode)
 {
-        if (_NUMBER(TreeNode)) {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(NUMBER, TreeNode->getValue());
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(NUMBER, TreeNode->getValue());
+    TreeNode->addChild(childNode);
+    if (!_NUMBER(childNode)) {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
         return false;
     }
     //除去首部为0的多数字情形，此时默认为错误的
@@ -179,13 +184,11 @@ bool SyntaxAnalyzer::_UNSIGNEDINTEGER(SyntaxTreeNode* TreeNode)
     while (_lexicalOutput[_currentWordIndex]._type == "NUMBER")
     {
         ++_currentWordIndex;  //读取下一个字符
-        if (_NUMBER(TreeNode)) {
-            // 这里没想好怎么处理循环
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(NUMBER, TreeNode->getValue());
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(NUMBER, TreeNode->getValue());
+        TreeNode->addChild(childNode2);
+        if (!_NUMBER(childNode2)) {
+            // 若不符合语法规则，则将节点弹出
+            TreeNode->getChildren().pop_back();
             return false;
         }
     }
@@ -198,35 +201,36 @@ bool SyntaxAnalyzer::_VARDECLARATION(SyntaxTreeNode* TreeNode)
     ++_currentWordIndex;
     //因为之前在分程序已经判断了变量说明，所以这里可以认定第一个token是VAR
     SyntaxTreeNode* childNode = new SyntaxTreeNode(VAR_DECLARATION, "VAR");
-    cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
     TreeNode->addChild(childNode);
-    //_stable.addEntry("PROGRAM", "0");   //符号表添加符号,这里需要修改
 
-    if (_IDENTIFIER(TreeNode)) {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+
+    SyntaxTreeNode* childNode1 = new SyntaxTreeNode(identifier, "");
+    TreeNode->addChild(childNode1);
+    if (!_IDENTIFIER(childNode1)) {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
         return false;
     }
     while (_lexicalOutput[_currentWordIndex]._value == ",") {
         ++_currentWordIndex;
         SyntaxTreeNode* childNode2 = new SyntaxTreeNode(COMMA, ","); 
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode2);
-        if (_IDENTIFIER(TreeNode))
+
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(identifier, "");
+        TreeNode->addChild(childNode3);
+        if (!_IDENTIFIER(childNode3))
         {
-            SyntaxTreeNode* childNode3 = new SyntaxTreeNode(identifier, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode3);
-        }
-        else {
+            // 若不符合语法规则，则将节点弹出
+            TreeNode->getChildren().pop_back();
             return false;
         }
     }
+
+
     if (_lexicalOutput[_currentWordIndex]._value == ";") {
         ++_currentWordIndex;
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(SEMICOLON, ";");
+        TreeNode->addChild(childNode);
     }
     else {
         return false;
@@ -239,11 +243,11 @@ bool SyntaxAnalyzer::_VARDECLARATION(SyntaxTreeNode* TreeNode)
 bool SyntaxAnalyzer::_IDENTIFIER(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER") {
-        
+        // 将标识符作为节点添加到父节点当中
         SyntaxTreeNode* childNode = new SyntaxTreeNode(IDENTIFIER, _lexicalOutput[_currentWordIndex]._value);
-        ++_currentWordIndex; //读取下一个token
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
+        // 读取下一个字符
+        ++_currentWordIndex; 
         return true;
     }
     return false;
@@ -255,39 +259,37 @@ bool SyntaxAnalyzer::_COMPOUNDSTATEMENT(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._value == "BEGIN") {
         ++_currentWordIndex;  //读取下一个字符
-        //。。。可以添加
         SyntaxTreeNode* childNode = new SyntaxTreeNode(BEGIN, "BEGIN");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
 
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(statement, "");
+    TreeNode->addChild(childNode2);
     //判断语句
-    if (_STATEMENT(TreeNode))
+    if (!_STATEMENT(childNode2))
     {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(statement, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+        // 若不符合语法规则，则将节点弹出
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    cout << _lexicalOutput[_currentWordIndex]._type << " " << _lexicalOutput[_currentWordIndex]._value << endl;
+
     while (_lexicalOutput[_currentWordIndex]._value == ";") {
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(SEMICOLON, ";");
+        TreeNode->addChild(childNode);
         ++_currentWordIndex;  //读取下一个字符
-        if (_STATEMENT(TreeNode))
+
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(statement, "");
+        TreeNode->addChild(childNode3);
+        if (!_STATEMENT(childNode3))
         {
-            SyntaxTreeNode* childNode3 = new SyntaxTreeNode(statement, "");
-            cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
-            TreeNode->addChild(childNode3);
-        }
-        else {
+            // 若不符合语法规则，则将节点弹出
+            TreeNode->getChildren().pop_back();
             return false;
         }
     }
     if (_lexicalOutput[_currentWordIndex]._value == "END") {
         ++_currentWordIndex;  //读取下一个字符
         SyntaxTreeNode* childNode4 = new SyntaxTreeNode(END, "END");
-        cout << "add node: " << childNode4->getType() << " " << childNode4->getValue() << endl;
         TreeNode->addChild(childNode4);
         return true;
     }
@@ -295,38 +297,58 @@ bool SyntaxAnalyzer::_COMPOUNDSTATEMENT(SyntaxTreeNode* TreeNode)
 }
 
 //<语句>→<赋值语句> | <条件语句 > | <循环语句> | <复合语句> | <空语句>
-// 这里需要插入节点吗，是不是在调用的时候已经插入了
 bool SyntaxAnalyzer::_STATEMENT(SyntaxTreeNode* TreeNode)
 {
-    SyntaxTreeNode* childNode = new SyntaxTreeNode(statement, "");
-    cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-    cout << _lexicalOutput[_currentWordIndex]._type <<" "<< _lexicalOutput[_currentWordIndex]._value << endl;
-    if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER" ) {  //赋值语句
-        return _ASSIGNMENTSTATEMENT(TreeNode);
+    if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER" ) { //赋值语句
+        SyntaxTreeNode* childNode1 = new SyntaxTreeNode(assignment_statement, "assignment_statement");
+        TreeNode->addChild(childNode1);
+        if (!_ASSIGNMENTSTATEMENT(childNode1)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
     } 
     else if (_lexicalOutput[_currentWordIndex]._value == "IF") {  //条件语句
-        return _CONDITIONALSTATEMENT(TreeNode);
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(conditional_statement, "conditional_statement");
+        TreeNode->addChild(childNode2);
+        if (!_CONDITIONALSTATEMENT(childNode2)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
     }
     else if (_lexicalOutput[_currentWordIndex]._value == "WHILE") { //循环语句
-        return _LOOPSTATEMENT(TreeNode);
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(loop_statement, "loop_statement");
+        TreeNode->addChild(childNode3);
+        if (!_LOOPSTATEMENT(childNode3)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
+
     }
     else if (_lexicalOutput[_currentWordIndex]._value == "BEGIN") {  //复合语句
-        return _COMPOUNDSTATEMENT(TreeNode);
+        SyntaxTreeNode* childNode4 = new SyntaxTreeNode(compound_statement, "compound_statement");
+        TreeNode->addChild(childNode4);
+        if (!_COMPOUNDSTATEMENT(childNode4)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
     }
     else {
         return _EMPTYSTATEMENT(TreeNode);   //空语句
     }
-    return true;
 }
 
 //<赋值语句>→<标识符>: = <表达式>
 bool SyntaxAnalyzer::_ASSIGNMENTSTATEMENT(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER") {
-        ++_currentWordIndex;
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
+        
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(IDENTIFIER, _lexicalOutput[_currentWordIndex]._value);
         TreeNode->addChild(childNode);
+        ++_currentWordIndex;
     }
     else {
         return false;
@@ -334,18 +356,16 @@ bool SyntaxAnalyzer::_ASSIGNMENTSTATEMENT(SyntaxTreeNode* TreeNode)
     if (_lexicalOutput[_currentWordIndex]._value == ":=") {
         ++_currentWordIndex;
         SyntaxTreeNode* childNode2 = new SyntaxTreeNode(ASSIGNMENT, ":=");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
         TreeNode->addChild(childNode2);
     }
     else{
         return false;
     }
-    if (_EXPRESSION(TreeNode)) {
-        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression, "");
-        cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
-        TreeNode->addChild(childNode3);
-    }
-    else {
+
+    SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression, "");
+    TreeNode->addChild(childNode3);
+    if (!_EXPRESSION(childNode3)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -361,24 +381,22 @@ bool SyntaxAnalyzer::_EXPRESSION(SyntaxTreeNode* TreeNode)
     if (_lexicalOutput[_currentWordIndex]._value == "+" ||
         _lexicalOutput[_currentWordIndex]._value == "-") {
         SyntaxTreeNode* childNode = new SyntaxTreeNode(ADDITIVE_OPERATOR, _lexicalOutput[_currentWordIndex]._value);
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
         ++_currentWordIndex;  //读取下一个字符
     }
-    if (_TERM(TreeNode)) {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term, "");
+    TreeNode->addChild(childNode2);
+    if (!_TERM(childNode2)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    if (_EXPRESSION2(TreeNode)) {
-        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression2, "");
-        cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
-        TreeNode->addChild(childNode3);
-    }
-    else {
+
+    SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression2, "");
+    TreeNode->addChild(childNode3);
+    if (!_EXPRESSION2(childNode3)) {
+        // 若不符合语法规则，则将子节点弹出，并返回错误
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -389,29 +407,24 @@ bool SyntaxAnalyzer::_EXPRESSION2(SyntaxTreeNode* TreeNode) {
     if (_lexicalOutput[_currentWordIndex]._value == "+" ||
         _lexicalOutput[_currentWordIndex]._value == "-") {
 
-        ++_currentWordIndex;  //读取下一个字符
-        if (_ADDITIVEOPERATOR(TreeNode)) {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(additive_operator, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(additive_operator, "");
+        TreeNode->addChild(childNode);
+        if (!_ADDITIVEOPERATOR(childNode)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
-        if (_TERM(TreeNode)) {
-            SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term, "");
-            cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-            TreeNode->addChild(childNode2);
-        }
-        else {
+
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term, "");
+        TreeNode->addChild(childNode2);
+        if (!_TERM(childNode2)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
-        if (_EXPRESSION2(TreeNode)) {
-            SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression2, "");
-            cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
-            TreeNode->addChild(childNode3);
-        }
-        else {
+
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression2, "");
+        TreeNode->addChild(childNode3);
+        if (!_EXPRESSION2(childNode3)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
         return true;
@@ -429,20 +442,17 @@ bool SyntaxAnalyzer::_EXPRESSION2(SyntaxTreeNode* TreeNode) {
 //<项">→<乘法运算符> <因⼦> <项"> | <空语句>
 bool SyntaxAnalyzer::_TERM(SyntaxTreeNode* TreeNode)
 {
-    if (_FACTOR(TreeNode)) {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(factor, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(factor, "");
+    TreeNode->addChild(childNode);
+    if (!_FACTOR(childNode)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    if (_TERM2(TreeNode)) {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(term2, "");
+    TreeNode->addChild(childNode2);
+    if (!_TERM2(childNode2)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -452,29 +462,25 @@ bool SyntaxAnalyzer::_TERM2(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._value == "*" ||
         _lexicalOutput[_currentWordIndex]._value == "/") {
-        ++_currentWordIndex;  //读取下一个字符
-        if (_MULTIPLICATIVEOPERATOR(TreeNode)) {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(multiplicative_operator, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(multiplicative_operator, "");
+        TreeNode->addChild(childNode);
+        if (!_MULTIPLICATIVEOPERATOR(childNode)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
-        if (_FACTOR(TreeNode)) {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(factor, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+
+        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(factor, "");
+        TreeNode->addChild(childNode2);
+        if (!_FACTOR(childNode2)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
-        if (_TERM2(TreeNode)) {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(term2, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+
+        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(term2, "");
+        TreeNode->addChild(childNode3);
+        if (!_TERM2(childNode3)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
         return true;
@@ -490,31 +496,41 @@ bool SyntaxAnalyzer::_TERM2(SyntaxTreeNode* TreeNode)
 bool SyntaxAnalyzer::_FACTOR(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._type == "IDENTIFIER") {
-        return _IDENTIFIER(TreeNode);
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(identifier, "");
+        TreeNode->addChild(childNode);
+        if (!_IDENTIFIER(childNode)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
     }
     else if (_lexicalOutput[_currentWordIndex]._type == "NUMBER") {
-        return _UNSIGNEDINTEGER(TreeNode);
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(unsigned_integer, "");
+        TreeNode->addChild(childNode);
+        if (!_UNSIGNEDINTEGER(childNode)) {
+            TreeNode->getChildren().pop_back();
+            return false;
+        }
+        return true;
     }
     else if (_lexicalOutput[_currentWordIndex]._value == "(") {
         ++_currentWordIndex;       //读取下一个token
-        if (_EXPRESSION(TreeNode)) {
-            SyntaxTreeNode* childNode = new SyntaxTreeNode(opening_parentheses, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-            TreeNode->addChild(childNode);
-        }
-        else {
+
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(opening_parentheses, "");
+        TreeNode->addChild(childNode);
+        if (!_EXPRESSION(childNode)) {
+            TreeNode->getChildren().pop_back();
             return false;
         }
+
         if (_lexicalOutput[_currentWordIndex]._value == ")") {
             ++_currentWordIndex;
             SyntaxTreeNode* childNode = new SyntaxTreeNode(closing_parentheses, "");
-            cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
             TreeNode->addChild(childNode);
         }
         else {
             return false;
         }
-       
         return true;
     }
     return false;
@@ -525,10 +541,9 @@ bool SyntaxAnalyzer::_ADDITIVEOPERATOR(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._value == "+" || 
         _lexicalOutput[_currentWordIndex]._value == "-") {
-        ++_currentWordIndex;
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(additive_operator, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(ADDITIVE_OPERATOR, _lexicalOutput[_currentWordIndex]._value);
         TreeNode->addChild(childNode);
+        ++_currentWordIndex;
         return true;
     }
     return false;
@@ -539,10 +554,10 @@ bool SyntaxAnalyzer::_MULTIPLICATIVEOPERATOR(SyntaxTreeNode* TreeNode)
 {
     if (_lexicalOutput[_currentWordIndex]._value == "*" ||
         _lexicalOutput[_currentWordIndex]._value == "/") {
-        ++_currentWordIndex;
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(multiplicative_operator, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
+        
+        SyntaxTreeNode* childNode = new SyntaxTreeNode(MULTIPLICATIVE_OPERATOR, _lexicalOutput[_currentWordIndex]._value);
         TreeNode->addChild(childNode); 
+        ++_currentWordIndex;
         return true;
     }
     return false;
@@ -554,37 +569,32 @@ bool SyntaxAnalyzer::_CONDITIONALSTATEMENT(SyntaxTreeNode* TreeNode)
     if (_lexicalOutput[_currentWordIndex]._value == "IF") {
         _currentWordIndex++;  //读取下一个字符
         SyntaxTreeNode* childNode = new SyntaxTreeNode(IF, "IF");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else {
         return false;
     }
 
-    if (_CONDITION(TreeNode)) {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(condition, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(condition, "");
+    TreeNode->addChild(childNode2);
+    if (!_CONDITION(childNode2)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     //读取下一个标识符
     if (_lexicalOutput[_currentWordIndex]._value == "THEN") {
         _currentWordIndex++;  //读取下一个字符
         SyntaxTreeNode* childNode3 = new SyntaxTreeNode(THEN, "THEN");
-        cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
         TreeNode->addChild(childNode3);
     }
     else {
         return false;
     }
-    if (_STATEMENT(TreeNode)) {
-        SyntaxTreeNode* childNode4 = new SyntaxTreeNode(statement, "");
-        cout << "add node: " << childNode4->getType() << " " << childNode4->getValue() << endl;
-        TreeNode->addChild(childNode4);
-    }
-    else {
+
+    SyntaxTreeNode* childNode4 = new SyntaxTreeNode(statement, "");
+    TreeNode->addChild(childNode4);
+    if (!_STATEMENT(childNode4)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -596,37 +606,33 @@ bool SyntaxAnalyzer::_LOOPSTATEMENT(SyntaxTreeNode* TreeNode)
     if (_lexicalOutput[_currentWordIndex]._value == "WHILE") {
         _currentWordIndex++;  //读取下一个字符
         SyntaxTreeNode* childNode = new SyntaxTreeNode(WHILE, "WHILE");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else {
         return false;
     }
 
-    if (_CONDITION(TreeNode)) {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(condition, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(condition, "");
+    TreeNode->addChild(childNode2);
+    if (!_CONDITION(childNode2)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
+
     //读取下一个标识符
     if (_lexicalOutput[_currentWordIndex]._value == "DO") {
         _currentWordIndex++;  //读取下一个字符
         SyntaxTreeNode* childNode3 = new SyntaxTreeNode(DO, "DO");
-        cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
         TreeNode->addChild(childNode3);
     }
     else {
         return false;
     }
-    if (_STATEMENT(TreeNode)) {
-        SyntaxTreeNode* childNode4 = new SyntaxTreeNode(statement, "");
-        cout << "add node: " << childNode4->getType() << " " << childNode4->getValue() << endl;
-        TreeNode->addChild(childNode4);
-    }
-    else {
+
+    SyntaxTreeNode* childNode4 = new SyntaxTreeNode(statement, "");
+    TreeNode->addChild(childNode4);
+    if (!_STATEMENT(childNode4)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -635,28 +641,24 @@ bool SyntaxAnalyzer::_LOOPSTATEMENT(SyntaxTreeNode* TreeNode)
 //19 <条件>→<表达式> <关系运算符> <表达式>
 bool SyntaxAnalyzer::_CONDITION(SyntaxTreeNode* TreeNode)
 {
-    if (_EXPRESSION(TreeNode)) {
-        SyntaxTreeNode* childNode = new SyntaxTreeNode(expression, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
-        TreeNode->addChild(childNode);
-    }
-    else {
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(expression, "");
+    TreeNode->addChild(childNode);
+    if (!_EXPRESSION(childNode)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    if (_RELATIONOPERATOR(TreeNode)) {
-        SyntaxTreeNode* childNode2 = new SyntaxTreeNode(relation_operator, "");
-        cout << "add node: " << childNode2->getType() << " " << childNode2->getValue() << endl;
-        TreeNode->addChild(childNode2);
-    }
-    else {
+
+    SyntaxTreeNode* childNode2 = new SyntaxTreeNode(relation_operator, "");
+    TreeNode->addChild(childNode2);
+    if (!_RELATIONOPERATOR(childNode2)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
-    if (_EXPRESSION(TreeNode)) {
-        SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression, "");
-        cout << "add node: " << childNode3->getType() << " " << childNode3->getValue() << endl;
-        TreeNode->addChild(childNode3);
-    }
-    else {
+
+    SyntaxTreeNode* childNode3 = new SyntaxTreeNode(expression, "");
+    TreeNode->addChild(childNode3);
+    if (!_EXPRESSION(childNode3)) {
+        TreeNode->getChildren().pop_back();
         return false;
     }
     return true;
@@ -674,7 +676,6 @@ bool SyntaxAnalyzer::_RELATIONOPERATOR(SyntaxTreeNode* TreeNode)
         
         SyntaxTreeNode* childNode = new SyntaxTreeNode(RELATION_OPERATOR, _lexicalOutput[_currentWordIndex]._value);
         ++_currentWordIndex;
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else {
@@ -690,7 +691,6 @@ bool SyntaxAnalyzer::_LETTER(SyntaxTreeNode* TreeNode)
         _lexicalOutput[_currentWordIndex]._value <= "z") {
         ++_currentWordIndex;
         SyntaxTreeNode* childNode = new SyntaxTreeNode(letter, "");
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else {
@@ -707,7 +707,6 @@ bool SyntaxAnalyzer::_NUMBER(SyntaxTreeNode* TreeNode)
         
         SyntaxTreeNode* childNode = new SyntaxTreeNode(NUMBER, _lexicalOutput[_currentWordIndex]._value);
         ++_currentWordIndex;
-        cout << "add node: " << childNode->getType() << " " << childNode->getValue() << endl;
         TreeNode->addChild(childNode);
     }
     else {
@@ -719,5 +718,7 @@ bool SyntaxAnalyzer::_NUMBER(SyntaxTreeNode* TreeNode)
 //<空语句>
 bool SyntaxAnalyzer::_EMPTYSTATEMENT(SyntaxTreeNode* TreeNode)
 {
+    SyntaxTreeNode* childNode = new SyntaxTreeNode(EMPTY_STATEMENT,"empty");
+    TreeNode->addChild(childNode);
     return true;
 }

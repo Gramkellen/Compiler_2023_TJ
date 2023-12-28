@@ -122,7 +122,7 @@ bool LexicalAnalyzer::Analyze(string str) {
             if (!digitAnalysis(str, i)) { 
                 //如果检测错误的话
                 return false;
-           }
+            }
         }
         else {
             // 判断运算符

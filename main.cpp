@@ -30,13 +30,29 @@ void bfs(SyntaxTreeNode* root) {
 
         // 如果节点没有子节点，那么它就是叶子节点
         if (children.empty()) {
-            for (const SyntaxTreeNode* child : children) {
-                std::cout << child->getType() <<" "<< child->getValue() << std::endl;
-            }
+            cout << node->getType() << " " << node->getValue() << endl;
         }
 
         for (SyntaxTreeNode* child : children) {
             queue.push(child);
+        }
+    }
+}
+
+void dfs(SyntaxTreeNode* node) {
+    if (node == nullptr) {
+        return;
+    }
+
+    // Recurse on the children
+    vector<SyntaxTreeNode*>& children = node->getChildren();
+    if (children.empty() && node->getValue() != "empty") {
+        // If the node has no children, it's a leaf node
+        cout << node->getType() << " " << node->getValue() << endl;
+    }
+    else {
+        for (SyntaxTreeNode* child : children) {
+            dfs(child);
         }
     }
 }
@@ -68,7 +84,7 @@ int main()
     {
         cout << "语法分析有错！" << endl;
     }
-    bfs(s.getSyntaxTreeRoot());
+    dfs(s.getSyntaxTreeRoot());
 
     return 0;
 }
