@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 
-SymbolTable::SymbolTable() {}
+// SymbolTable::SymbolTable() {}
 
 // Ìí¼Ó·ûºÅ±íÏî
 void SymbolTable::addEntry(string name, string type) {

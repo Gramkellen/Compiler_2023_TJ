@@ -7,19 +7,8 @@
 #include<vector>
 using namespace std;
 
-//关键字标识
-enum KeyWordTags
-{
-    KW_PROGRAM,
-    KW_BEGIN,
-    KW_END,
-    KW_CONST,
-    KW_VAR,
-    KW_WHILE,
-    KW_DO,
-    KW_IF,
-    KW_THEN
-};
+void Test01();
+string readFile(string filename = "D:\\Files\\SoftWare_5\\编译原理\\期末\\lexical\\Compiler_2023_TJ\\lexical\\program.txt");
 //使用hash底层来进行KEYWORDS查找
 const unordered_set<string> KEYWORDS = {
     "PROGRAM",
@@ -35,26 +24,26 @@ const unordered_set<string> KEYWORDS = {
 
 //这里约定了算符和界限符，考虑到后面可能有优先级（？），暂时使用map
 const unordered_map<string, int> OPERATORWORD = {
-        {"=",           1},
-        {":=",          2},
-        {"+",           3},
-        {"-",           4},
-        {"*",           5},
-        {"/",           6},
-        {"#",           7},
-        {"<",           8},
-        {"<=",          9},
-        {">",           10},
-        {">=",          11},
-        {";",           12},
-        {",",           13},
+        {"+",           1},
+        {"-",           2},
+        {"*",           3},
+        {"/",           4},
+        {":=",          5},
+        {"=",           6},
+        {"<>",          7},
+        {">",           8},
+        {">=",          9},
+        {"<",           10},
+        {"<=",          11},
         {"(",           14},
-        {")",           15}
+        {")",           15},
+        {";",           16},
+        {",",           17},
 };
 
 //单词标记
-struct Word {
-    Word(string type = "", string value = "") :_type(type), _value(value) {}
+struct Token {
+    Token(string type = "", string value = "") :_type(type), _value(value) {}
     string _type;      //单词类型
     string _value;    //单词的值
 };
@@ -75,7 +64,9 @@ public:
     bool operatorAnalysis(string& str, int& i); //算符检测
     bool Analyze(string str);                  //词法分析
     void Output();                             //输出函数
-    vector<Word> getlexicalresult() { return LexicalAnalysisOutput; }
+    const vector<Token>& getInput() {
+        return LexicalAnalysisOutput;
+    }
 private:
-    vector<Word> LexicalAnalysisOutput;//单词类型，属性值
+    vector<Token> LexicalAnalysisOutput;//单词类型，属性值
 };

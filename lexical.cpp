@@ -1,4 +1,3 @@
-#pragma once
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -8,7 +7,7 @@
 #include <climits>
 #include <algorithm>
 #include <fstream>
-#include "lexical.h"
+#include"lexical.h"
 using namespace std;
 
 
@@ -31,7 +30,7 @@ int LexicalAnalyzer::findOperatorWords(const string& str) {
 void LexicalAnalyzer::letterAnalysis(string& str, int& i)
 {
     string tempWord;
-    while ((str[i] >= 'A' && str[i] <= 'Z') || (str[i] >= '0' && str[i] <= '9')) {
+    while (((str[i] >= 'A' && str[i] <= 'Z')  || (str[i] >= 'a' && str[i] <= 'z')) || (str[i] >= '0' && str[i] <= '9')) {
         tempWord += str[i];
         i++;
     }
@@ -59,7 +58,7 @@ bool LexicalAnalyzer::digitAnalysis(string& str, int& i) {
         }
     }
     //数字后面紧跟字符，检测错误
-    if (str[i] >= 'A' && str[i] <= 'Z') {
+    if ((str[i] >= 'A' && str[i] <= 'Z') || (str[i] >= 'a' && str[i] <= 'z')) {
         return false;
     }
     LexicalAnalysisOutput.emplace_back("NUMBER", tempWord); //数字
@@ -67,7 +66,7 @@ bool LexicalAnalyzer::digitAnalysis(string& str, int& i) {
     return true;
 }
 
-//标识符检测
+//算符、界限符检测
 bool LexicalAnalyzer::operatorAnalysis(string& str, int& i) {
     string tempWord;
     tempWord += str[i];
@@ -97,6 +96,7 @@ bool LexicalAnalyzer::operatorAnalysis(string& str, int& i) {
         if (tempid2) {
             LexicalAnalysisOutput.emplace_back("SecondOperator", tempWord);
             i++;
+            return true;
         }
         else
         {
@@ -107,13 +107,14 @@ bool LexicalAnalyzer::operatorAnalysis(string& str, int& i) {
 
 //词法分析
 bool LexicalAnalyzer::Analyze(string str) {
-    transform(str.begin(), str.end(), str.begin(), ::toupper);
+    //transform(str.begin(), str.end(), str.begin(), ::toupper);
     for (int i = 0; i < str.length(); i++) {
         if (str[i] == ' ' || str[i] == 9) {//空格或tab
-            continue;
+            continue; 
         }
-        //识别标识符
-        else if (str[i] >= 'A' && str[i] <= 'Z') {
+        //识别关键字 or  标识符
+        else if ((str[i] >= 'A' && str[i] <= 'Z') || 
+            (str[i] >= 'a' && str[i] <= 'z')) {
             letterAnalysis(str, i);
         }
         //识别整数
@@ -121,9 +122,10 @@ bool LexicalAnalyzer::Analyze(string str) {
             if (!digitAnalysis(str, i)) { 
                 //如果检测错误的话
                 return false;
-           }
+            }
         }
         else {
+            // 判断运算符
             if (!operatorAnalysis(str, i)) {
                 return false;
             }
@@ -135,6 +137,53 @@ bool LexicalAnalyzer::Analyze(string str) {
 //输出
 void LexicalAnalyzer::Output() {
     for (auto i : LexicalAnalysisOutput) {
-        cout << i._type << "  :  " << i._value << endl << endl;
+        cout << i._type << "  :  " << i._value << endl;
     }
 }
+
+
+
+//-----------------文件读取函数实现-----------------//
+/*
+* 注解：
+* 这里是对整个进行读取测试，实际需要结合语法分析和中间代码生成实现：
+  边读边进行词法和语法分析，然后翻译成中间代码
+*/
+string readFile(string filename) {
+    std::ifstream file(filename); // 打开名 txt 的文件
+    string LexicalAnalysisInput;
+    if (file.is_open()) { // 检查文件是否成功打开
+        std::string line;
+        while (std::getline(file, line)) { // 逐行读取文件内容,换行符会被读取然后丢弃
+            if (line.length() != 0) {
+                LexicalAnalysisInput += line;
+                LexicalAnalysisInput += " ";
+            }
+        }
+        file.close(); // 关闭文件流
+        return LexicalAnalysisInput;
+    }
+    else {
+        std::cerr << "Unable to open file" << std::endl;
+        return "";
+    }
+}
+
+void Test01()
+{
+    LexicalAnalyzer LexicalMachine;
+    string filename;
+    cout << "请输入文件名称：" << endl;
+    cin >> filename;
+    string LexicalAnalysisInput = readFile(filename);
+    if (LexicalMachine.Analyze(LexicalAnalysisInput)) {
+        LexicalMachine.Output();
+        //进行语法分析
+    }
+    else {
+        //出现词法错误
+        cout << "Lexical Error" << endl;
+    }
+}
+
+

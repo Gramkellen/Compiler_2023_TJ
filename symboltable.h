@@ -16,7 +16,7 @@ struct SymbolTableEntry {
 // 定义符号表类
 class SymbolTable {
 public:
-    SymbolTable();
+    SymbolTable() {};
 
     // 符号表操作如添加、查找
     void addEntry(string name, string type);
