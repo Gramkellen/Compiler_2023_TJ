@@ -1,0 +1,7 @@
+SymbolTable
+name    type
+x        VAR
+y        VAR
+t0        MID
+t1        MID
+t2        MID
