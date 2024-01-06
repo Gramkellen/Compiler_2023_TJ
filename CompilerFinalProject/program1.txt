@@ -1,0 +1,5 @@
+PROGRAM 1Example
+VAR x, y;
+BEGIN
+    x := 1;
+END

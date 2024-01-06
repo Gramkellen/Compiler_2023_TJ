@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include<fstream>
 using namespace std;
 
 // 符号表结构
@@ -16,14 +17,15 @@ struct SymbolTableEntry {
 // 定义符号表类
 class SymbolTable {
 public:
-    SymbolTable();
-
+    SymbolTable() {};
+    void saveSymbol();
     // 符号表操作如添加、查找
     void addEntry(string name, string type);
     SymbolTableEntry* findEntry(string name);
 
 private:
     vector<SymbolTableEntry> entries; // 符号表数组
+    
 };
 
 #endif // SYMBOL_TABLE_H

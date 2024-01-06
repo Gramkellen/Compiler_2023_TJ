@@ -1,0 +1,136 @@
+【测试1】
+PROGRAM Example1
+CONST a := 5;
+VAR x, y;
+BEGIN
+    x := a;
+    y := 10;
+    IF x < y THEN x := x + 1;
+END
+
+【测试2】
+PROGRAM Example2
+VAR number;
+BEGIN
+    number := 0;
+    WHILE number <= 10 DO
+        number := number + 1;
+END
+
+【测试3】
+PROGRAM Example3
+VAR a, b, c;
+BEGIN
+    a := 3;
+    b := 4;
+    c := a * b;
+END
+
+【测试4】
+PROGRAM Example4
+CONST max := 100;
+VAR n, total;
+BEGIN
+    n := 1;
+    total := 0;
+    WHILE n <= max DO
+    BEGIN
+        total := total + n;
+        n := n + 1;
+    END
+END
+
+【测试5】
+PROGRAM Example5
+VAR n, fact;
+BEGIN
+    n := 5;
+    fact := 1;
+    WHILE n > 1 DO
+    BEGIN
+        fact := fact * n;
+        n := n - 1;
+    END
+END
+
+【测试6】
+PROGRAM Complex1
+CONST m := 10;
+VAR x, y, z;
+BEGIN
+    x := 1;
+    y := m;
+    WHILE x < y DO
+    BEGIN
+        z := x * y;
+        x := x + 1;
+        y := y - 1;
+    END
+END
+
+【测试7】
+PROGRAM Complex5
+VAR i, j, product;
+BEGIN
+    i := 1;
+    product := 1;
+    WHILE i <= 3 DO
+    BEGIN
+        j := 1;
+        WHILE j <= 3 DO
+        BEGIN
+            product := product * j;
+            j := j + 1;
+        END;
+        i := i + 1;
+    END
+END
+
+【测试8】
+PROGRAM Complex6
+VAR x, y, z;
+BEGIN
+    x := 10;
+    y := 20;
+    IF x < y THEN
+    BEGIN
+        z := x;
+        WHILE z <= y DO
+        BEGIN
+            z := z + 2;
+        END
+    END
+END
+
+【测试9】
+PROGRAM Complex8
+CONST n := 5;
+VAR i, j, k;
+BEGIN
+    i := 0;
+    WHILE i < n DO
+    BEGIN
+        j := 0;
+        WHILE j < i DO
+        BEGIN
+            k := j * i;
+            j := j + 1;
+        END;
+        i := i + 1;
+    END
+END
+
+【测试10】
+PROGRAM Complex10
+VAR count, square;
+BEGIN
+    count := 1;
+    WHILE count <= 5 DO
+    BEGIN
+        square := count * count;
+        count := count + 1;
+    END
+END
+
+
+

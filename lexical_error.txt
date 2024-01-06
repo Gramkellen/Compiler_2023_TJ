@@ -1,0 +1,63 @@
+// 错误：标识符不能以数字开头
+PROGRAM 1Example
+VAR x, y;
+BEGIN
+    x := 1;
+END
+
+PROGRAM Example
+VAR x, 2y;  // 错误：标识符不能包含数字在前
+BEGIN
+    x := 1;
+END
+
+PROGRAM Example
+VAR x y;  // 错误：变量间缺少逗号
+BEGIN
+    x := 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := y + ;  // 错误：表达式不完整
+END
+
+PROGRM Example  // 错误：关键字拼写错误
+VAR x, y;
+BEGIN
+    x := 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    y := a#b;  // 错误：非法符号 '#'
+END
+
+PROGRAM Example
+CONST x = 09;  // 错误：整数格式不正确
+BEGIN
+    VAR y;
+    y := x;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    if y = 0 then x := x + 1;  // 错误：关键字应为大写
+END
+
+PROGRAM Example
+VAR x, _y;  // 错误：标识符不能包含下划线
+BEGIN
+    x := 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BGIN  // 错误：关键字拼写错误
+    x := 1;
+END

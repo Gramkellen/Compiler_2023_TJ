@@ -1,0 +1,67 @@
+PROGRAM Example  // 错误：缺少VAR声明
+x := 1;
+BEGIN
+    x := x + 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1
+    y := x + 1;  // 错误：缺少分号
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    IF x = 1 THEN  // 错误：缺少语句
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    WHILE x < 5 DO  // 错误：循环内缺少语句
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    y := 2;
+    IF x < y THEN 
+        BEGIN
+            x := x + 1;
+        END  // 错误：多余的END
+    y := y - 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    y := 2;
+    IF x < y  // 错误：缺少THEN关键字
+        x := x + 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    y := 2;
+    IF x < y THEN BEGIN
+        x := x + 1
+    END;  // 错误：复合语句内的语句缺少分号
+    y := y - 1;
+END
+
+PROGRAM Example
+VAR x, y;
+BEGIN
+    x := 1;
+    y := 2;
+    IF x < y THEN 
+        x := x + 1;
+    END;  // 错误：多余的END
+    y := y - 1;
+END
